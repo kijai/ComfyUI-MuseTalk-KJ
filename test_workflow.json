@@ -1,6 +1,6 @@
 {
-  "last_node_id": 56,
-  "last_link_id": 117,
+  "last_node_id": 65,
+  "last_link_id": 145,
   "nodes": [
     {
       "id": 22,
@@ -28,7 +28,7 @@
         "Node name for S&R": "Display Any (rgthree)"
       },
       "widgets_values": [
-        "194"
+        ""
       ]
     },
     {
@@ -72,42 +72,6 @@
       ]
     },
     {
-      "id": 5,
-      "type": "muse_talk_model_loader",
-      "pos": [
-        1233,
-        339
-      ],
-      "size": {
-        "0": 228.01402282714844,
-        "1": 35.79340744018555
-      },
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 3
-        }
-      ],
-      "outputs": [
-        {
-          "name": "muse_talk_model",
-          "type": "MUSETALKMOMODEL",
-          "links": [
-            69
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "muse_talk_model_loader"
-      }
-    },
-    {
       "id": 36,
       "type": "whisper_to_features",
       "pos": [
@@ -134,7 +98,7 @@
           "name": "whisper_chunks",
           "type": "WHISPERFEAT",
           "links": [
-            70
+            138
           ],
           "shape": 3,
           "slot_index": 0
@@ -195,38 +159,6 @@
       ]
     },
     {
-      "id": 4,
-      "type": "VAELoader",
-      "pos": [
-        799,
-        336
-      ],
-      "size": {
-        "0": 379.3569641113281,
-        "1": 58.21699523925781
-      },
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "outputs": [
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            3
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VAELoader"
-      },
-      "widgets_values": [
-        "vae-ft-mse-840000-ema-pruned.safetensors"
-      ]
-    },
-    {
       "id": 15,
       "type": "EmptyImage",
       "pos": [
@@ -238,7 +170,7 @@
         "1": 130
       },
       "flags": {},
-      "order": 2,
+      "order": 1,
       "mode": 0,
       "outputs": [
         {
@@ -260,59 +192,6 @@
         1,
         0
       ]
-    },
-    {
-      "id": 19,
-      "type": "VHS_DuplicateImages",
-      "pos": [
-        1009,
-        785
-      ],
-      "size": {
-        "0": 315,
-        "1": 78
-      },
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 99
-        },
-        {
-          "name": "multiply_by",
-          "type": "INT",
-          "link": 104,
-          "widget": {
-            "name": "multiply_by"
-          }
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            100
-          ],
-          "shape": 3,
-          "slot_index": 0
-        },
-        {
-          "name": "count",
-          "type": "INT",
-          "links": null,
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VHS_DuplicateImages"
-      },
-      "widgets_values": {
-        "multiply_by": 194
-      }
     },
     {
       "id": 16,
@@ -555,7 +434,7 @@
         "1": 218
       },
       "flags": {},
-      "order": 5,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
@@ -601,60 +480,6 @@
       ]
     },
     {
-      "id": 48,
-      "type": "VHS_DuplicateImages",
-      "pos": [
-        1009,
-        909
-      ],
-      "size": {
-        "0": 315,
-        "1": 78
-      },
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 101
-        },
-        {
-          "name": "multiply_by",
-          "type": "INT",
-          "link": 103,
-          "widget": {
-            "name": "multiply_by"
-          },
-          "slot_index": 1
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            102
-          ],
-          "shape": 3,
-          "slot_index": 0
-        },
-        {
-          "name": "count",
-          "type": "INT",
-          "links": null,
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VHS_DuplicateImages"
-      },
-      "widgets_values": {
-        "multiply_by": 194
-      }
-    },
-    {
       "id": 54,
       "type": "Uncrop (mtb)",
       "pos": [
@@ -677,7 +502,7 @@
         {
           "name": "crop_image",
           "type": "IMAGE",
-          "link": 111
+          "link": 145
         },
         {
           "name": "bbox",
@@ -701,64 +526,6 @@
       },
       "widgets_values": [
         0.25
-      ]
-    },
-    {
-      "id": 38,
-      "type": "muse_talk_process",
-      "pos": [
-        1519,
-        530
-      ],
-      "size": {
-        "0": 315,
-        "1": 166
-      },
-      "flags": {},
-      "order": 16,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "muse_talk_model",
-          "type": "MUSETALKMOMODEL",
-          "link": 69
-        },
-        {
-          "name": "whisper_features",
-          "type": "WHISPERFEAT",
-          "link": 70
-        },
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 100,
-          "slot_index": 2
-        },
-        {
-          "name": "masked_images",
-          "type": "IMAGE",
-          "link": 102
-        }
-      ],
-      "outputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "links": [
-            73,
-            74,
-            111
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "muse_talk_process"
-      },
-      "widgets_values": [
-        8,
-        0
       ]
     },
     {
@@ -828,7 +595,7 @@
         "1": 58
       },
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "outputs": [
         {
@@ -851,79 +618,6 @@
       ],
       "color": "#1b4669",
       "bgcolor": "#29699c"
-    },
-    {
-      "id": 21,
-      "type": "VHS_GetImageCount",
-      "pos": [
-        1887,
-        553
-      ],
-      "size": {
-        "0": 210,
-        "1": 26
-      },
-      "flags": {},
-      "order": 17,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 73
-        }
-      ],
-      "outputs": [
-        {
-          "name": "count",
-          "type": "INT",
-          "links": [
-            37,
-            116
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VHS_GetImageCount"
-      },
-      "widgets_values": {}
-    },
-    {
-      "id": 28,
-      "type": "VHS_LoadAudio",
-      "pos": [
-        338,
-        545
-      ],
-      "size": {
-        "0": 315,
-        "1": 82
-      },
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "outputs": [
-        {
-          "name": "audio",
-          "type": "VHS_AUDIO",
-          "links": [
-            45,
-            53,
-            117
-          ],
-          "shape": 3,
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VHS_LoadAudio"
-      },
-      "widgets_values": {
-        "audio_file": "input/yongen.wav",
-        "seek_seconds": 0
-      }
     },
     {
       "id": 56,
@@ -982,7 +676,7 @@
           "hidden": false,
           "paused": false,
           "params": {
-            "filename": "AnimateDiff_00002.mp4",
+            "filename": "MuseTalk_00001-audio.mp4",
             "subfolder": "",
             "type": "temp",
             "format": "video/h264-mp4"
@@ -998,17 +692,17 @@
         171
       ],
       "size": [
-        579.83642578125,
-        863.83642578125
+        580,
+        864
       ],
       "flags": {},
-      "order": 18,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 74,
+          "link": 140,
           "slot_index": 0
         },
         {
@@ -1047,24 +741,320 @@
           "hidden": false,
           "paused": false,
           "params": {
-            "filename": "AnimateDiff_00001-audio.mp4",
+            "filename": "MuseTalkCrop_00001-audio.mp4",
             "subfolder": "",
             "type": "temp",
             "format": "video/h264-mp4"
           }
         }
       }
+    },
+    {
+      "id": 28,
+      "type": "VHS_LoadAudio",
+      "pos": [
+        338,
+        545
+      ],
+      "size": {
+        "0": 315,
+        "1": 82
+      },
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "VHS_AUDIO",
+          "links": [
+            45,
+            53,
+            117
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_LoadAudio"
+      },
+      "widgets_values": {
+        "audio_file": "input/I GOTTA MAKE SOME CHANGES IN MY LIFE PT1 - AUDIO FROM JAYUZUMI.COM.mp3",
+        "seek_seconds": 0
+      }
+    },
+    {
+      "id": 19,
+      "type": "VHS_DuplicateImages",
+      "pos": [
+        1009,
+        785
+      ],
+      "size": {
+        "0": 315,
+        "1": 78
+      },
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 99
+        },
+        {
+          "name": "multiply_by",
+          "type": "INT",
+          "link": 104,
+          "widget": {
+            "name": "multiply_by"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            142
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "count",
+          "type": "INT",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_DuplicateImages"
+      },
+      "widgets_values": {
+        "multiply_by": 194
+      }
+    },
+    {
+      "id": 48,
+      "type": "VHS_DuplicateImages",
+      "pos": [
+        1009,
+        909
+      ],
+      "size": {
+        "0": 315,
+        "1": 78
+      },
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 101
+        },
+        {
+          "name": "multiply_by",
+          "type": "INT",
+          "link": 103,
+          "widget": {
+            "name": "multiply_by"
+          },
+          "slot_index": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            143
+          ],
+          "shape": 3,
+          "slot_index": 0
+        },
+        {
+          "name": "count",
+          "type": "INT",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_DuplicateImages"
+      },
+      "widgets_values": {
+        "multiply_by": 194
+      }
+    },
+    {
+      "id": 21,
+      "type": "VHS_GetImageCount",
+      "pos": [
+        1957,
+        552
+      ],
+      "size": {
+        "0": 210,
+        "1": 26
+      },
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 141
+        }
+      ],
+      "outputs": [
+        {
+          "name": "count",
+          "type": "INT",
+          "links": [
+            37,
+            116
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_GetImageCount"
+      },
+      "widgets_values": {}
+    },
+    {
+      "id": 4,
+      "type": "VAELoader",
+      "pos": [
+        1064,
+        140
+      ],
+      "size": {
+        "0": 379.3569641113281,
+        "1": 58.21699523925781
+      },
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            139
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "vae-ft-mse-840000-ema-pruned.safetensors"
+      ]
+    },
+    {
+      "id": 65,
+      "type": "muse_talk_model_loader",
+      "pos": [
+        1202,
+        257
+      ],
+      "size": {
+        "0": 210,
+        "1": 26
+      },
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "muse_talk_model",
+          "type": "MUSETALKMOMODEL",
+          "links": [
+            144
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "muse_talk_model_loader"
+      }
+    },
+    {
+      "id": 64,
+      "type": "muse_talk_process",
+      "pos": [
+        1617,
+        221
+      ],
+      "size": {
+        "0": 315,
+        "1": 162
+      },
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 139,
+          "slot_index": 0
+        },
+        {
+          "name": "muse_talk_model",
+          "type": "MUSETALKMOMODEL",
+          "link": 144
+        },
+        {
+          "name": "whisper_features",
+          "type": "WHISPERFEAT",
+          "link": 138
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 142
+        },
+        {
+          "name": "masked_images",
+          "type": "IMAGE",
+          "link": 143
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            140,
+            141,
+            145
+          ],
+          "shape": 3,
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "muse_talk_process"
+      },
+      "widgets_values": [
+        8,
+        0
+      ]
     }
   ],
   "links": [
-    [
-      3,
-      4,
-      0,
-      5,
-      0,
-      "VAE"
-    ],
     [
       18,
       15,
@@ -1114,38 +1104,6 @@
       "VCAUDIOTENSOR"
     ],
     [
-      69,
-      5,
-      0,
-      38,
-      0,
-      "MUSETALKMOMODEL"
-    ],
-    [
-      70,
-      36,
-      0,
-      38,
-      1,
-      "WHISPERFEAT"
-    ],
-    [
-      73,
-      38,
-      0,
-      21,
-      0,
-      "IMAGE"
-    ],
-    [
-      74,
-      38,
-      0,
-      30,
-      0,
-      "IMAGE"
-    ],
-    [
       96,
       6,
       0,
@@ -1162,27 +1120,11 @@
       "IMAGE"
     ],
     [
-      100,
-      19,
-      0,
-      38,
-      2,
-      "IMAGE"
-    ],
-    [
       101,
       16,
       0,
       48,
       0,
-      "IMAGE"
-    ],
-    [
-      102,
-      48,
-      0,
-      38,
-      3,
       "IMAGE"
     ],
     [
@@ -1242,14 +1184,6 @@
       "BBOX"
     ],
     [
-      111,
-      38,
-      0,
-      54,
-      1,
-      "IMAGE"
-    ],
-    [
       112,
       55,
       0,
@@ -1288,6 +1222,70 @@
       56,
       1,
       "VHS_AUDIO"
+    ],
+    [
+      138,
+      36,
+      0,
+      64,
+      2,
+      "WHISPERFEAT"
+    ],
+    [
+      139,
+      4,
+      0,
+      64,
+      0,
+      "VAE"
+    ],
+    [
+      140,
+      64,
+      0,
+      30,
+      0,
+      "IMAGE"
+    ],
+    [
+      141,
+      64,
+      0,
+      21,
+      0,
+      "IMAGE"
+    ],
+    [
+      142,
+      19,
+      0,
+      64,
+      3,
+      "IMAGE"
+    ],
+    [
+      143,
+      48,
+      0,
+      64,
+      4,
+      "IMAGE"
+    ],
+    [
+      144,
+      65,
+      0,
+      64,
+      1,
+      "MUSETALKMOMODEL"
+    ],
+    [
+      145,
+      64,
+      0,
+      54,
+      1,
+      "IMAGE"
     ]
   ],
   "groups": [],

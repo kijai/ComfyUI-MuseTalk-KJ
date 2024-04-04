@@ -1,5 +1,4 @@
 requests
-omegaconf
 tqdm
 diffusers>=0.26.0
 ffmpeg-python

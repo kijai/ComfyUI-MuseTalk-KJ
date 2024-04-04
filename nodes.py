@@ -3,16 +3,13 @@ import torch
 import torch.nn as nn
 import torchaudio
 import numpy as np
-import torchvision.transforms as transforms
 import math
-from omegaconf import OmegaConf
 import json
 
 import folder_paths
 from contextlib import nullcontext
 from tqdm import tqdm
 from diffusers import UNet2DConditionModel
-from .musetalk.models.vae import VAE
 
 script_directory = os.path.dirname(os.path.abspath(__file__))
 from comfy.utils import ProgressBar
@@ -39,7 +36,6 @@ class load_muse_talk:
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {
-            "vae": ("VAE",),
             },
         }
 
@@ -48,17 +44,11 @@ class load_muse_talk:
     FUNCTION = "loadmodel"
     CATEGORY = "MuseTalk"
 
-    def loadmodel(self, vae):
+    def loadmodel(self):
         device = mm.get_torch_device()
         dtype = mm.unet_dtype()
-        custom_config = {
-            'vae': vae
-        }
 
-        if not hasattr(self, 'model') or self.model == None or custom_config != self.current_config:
-            self.current_config = custom_config
-
-            #UNET
+        if not hasattr(self, 'model') or self.model == None:
             model_path = os.path.join(folder_paths.models_dir,'musetalk')
             if not os.path.exists(model_path):
                 from huggingface_hub import snapshot_download
@@ -76,18 +66,9 @@ class load_muse_talk:
             self.model.to(dtype)
             self.model.to(device)
 
-            #VAE
-            from diffusers.loaders.single_file_utils import (convert_ldm_vae_checkpoint, create_vae_diffusers_config)
-            original_config = OmegaConf.load(os.path.join(script_directory, f"configs/v1-inference.yaml"))
-            sd = vae.get_sd()
-            converted_vae_config = create_vae_diffusers_config(original_config, image_size=512)
-            converted_vae = convert_ldm_vae_checkpoint(sd, converted_vae_config)
-            self.vae = VAE(converted_vae_config, converted_vae, dtype=vae.vae_dtype)
-
             muse_talk_model = {
                 'unet': self.model,
                 'pe': self.pe,
-                'vae': self.vae
             }
         return (muse_talk_model,)
     
@@ -95,6 +76,7 @@ class muse_talk_process:
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {
+            "vae": ("VAE",),
             "muse_talk_model": ("MUSETALKMOMODEL",),
             "whisper_features" : ("WHISPERFEAT",),
             "images": ("IMAGE",),
@@ -109,28 +91,25 @@ class muse_talk_process:
     FUNCTION = "process"
     CATEGORY = "MuseTalk"
 
-    def process(self, muse_talk_model, whisper_features, images, masked_images, batch_size, delay_frame):
+    def process(self, vae, muse_talk_model, whisper_features, images, masked_images, batch_size, delay_frame):
         device = mm.get_torch_device()
         offload_device = mm.unet_offload_device()
         dtype = muse_talk_model['unet'].dtype
+        vae_scale_factor = 0.18215
         mm.unload_all_models()
         mm.soft_empty_cache()
-
-        images = images.permute(0, 3, 1, 2).to(device)
-        masked_images = masked_images.permute(0, 3, 1, 2).to(device)
-        transform = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-        images = transform(images)
-        masked_images = transform(masked_images)
+        
+        images = images.to(dtype).to(device)
+        masked_images = masked_images.to(dtype).to(device)
 
         autocast_condition = (dtype != torch.float32) and not mm.is_device_mps(device)
         with torch.autocast(mm.get_autocast_device(device), dtype=dtype) if autocast_condition else nullcontext():
             timesteps = torch.tensor([0], device=device)
-
-            muse_talk_model['vae'].vae.to(device)
+            vae.first_stage_model.to(device)
             input_latent_list = []
             for image, masked_image in zip(images, masked_images):
-                latent = muse_talk_model['vae'].encode_latents(image.unsqueeze(0))
-                masked_latents = muse_talk_model['vae'].encode_latents(masked_image.unsqueeze(0)) # [1, 4, 32, 32], torch tensor
+                latent = vae.encode(image.unsqueeze(0)).to(dtype).to(device) * vae_scale_factor
+                masked_latents = vae.encode(masked_image.unsqueeze(0)).to(dtype).to(device) * vae_scale_factor
 
                 latent_model_input = torch.cat([masked_latents, latent], dim=1)
                 input_latent_list.append(latent_model_input)
@@ -141,7 +120,7 @@ class muse_talk_process:
             
             total=int(np.ceil(float(video_num)/batch_size))
 
-            res_frame_list = []
+            out_frame_list = []
             
             pbar = ProgressBar(total)
             muse_talk_model['unet'].to(device)
@@ -152,17 +131,16 @@ class muse_talk_process:
                 audio_feature_batch = muse_talk_model['pe'](audio_feature_batch)
 
                 pred_latents = muse_talk_model['unet'](latent_batch, timesteps, encoder_hidden_states=audio_feature_batch).sample
-
-                recon = muse_talk_model['vae'].decode_latents(pred_latents)
+                pred_latents = (1 / vae_scale_factor) * pred_latents
+                decoded = vae.decode(pred_latents)
                 
-                for res_frame in recon:
-                    res_frame_list.append(res_frame)
+                for frame in decoded:
+                    out_frame_list.append(frame)
                 pbar.update(1)
 
-            out = torch.stack(res_frame_list, dim=0).permute(0, 2, 3, 1).float().cpu()
-
+            out = torch.stack(out_frame_list, dim=0).float().cpu()
         muse_talk_model['unet'].to(offload_device)
-        muse_talk_model['vae'].vae.to(offload_device)
+        vae.first_stage_model.to(offload_device)
         return (out,)
     
     def datagen(self, whisper_chunks,vae_encode_latents,batch_size,delay_frame):
