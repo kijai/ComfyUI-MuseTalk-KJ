@@ -4,6 +4,6 @@ results/
 *.zip
 .vscode/
 .hypothesis/
-checkpoints/
+*.pt
 __pycache__
 *.pyc
