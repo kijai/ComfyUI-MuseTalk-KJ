@@ -4,16 +4,16 @@ import torch.nn as nn
 import torchaudio
 import numpy as np
 import math
-import json
-
 import folder_paths
 from contextlib import nullcontext
 from tqdm import tqdm
-from diffusers import UNet2DConditionModel
+
+import comfy.latent_formats
+import comfy.model_management as mm
+from comfy.utils import ProgressBar, unet_to_diffusers, load_torch_file
+from comfy.model_base import BaseModel
 
 script_directory = os.path.dirname(os.path.abspath(__file__))
-from comfy.utils import ProgressBar
-import comfy.model_management as mm
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model=384, max_len=5000):
@@ -32,52 +32,58 @@ class PositionalEncoding(nn.Module):
         x = x + pe.to(x.device)
         return x
     
-class load_muse_talk:
+class MuseModelConfig:
+    def __init__(self):
+        unet_dtype = mm.unet_dtype()
+        self.unet_config = {'use_checkpoint': False, 'image_size': 32, 'out_channels': 4, 'use_spatial_transformer': True, 'legacy': False, 'adm_in_channels': None,
+            'dtype': unet_dtype, 'in_channels': 8, 'model_channels': 320, 'num_res_blocks': [2, 2, 2, 2], 'transformer_depth': [1, 1, 1, 1, 1, 1, 0, 0],
+            'channel_mult': [1, 2, 4, 4], 'transformer_depth_middle': 1, 'use_linear_in_transformer': False, 'context_dim': 384, 'num_heads': 8,
+            'transformer_depth_output': [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+            'use_temporal_attention': False, 'use_temporal_resblock': False}
+        self.latent_format = comfy.latent_formats.SD15
+        self.manual_cast_dtype = None
+        self.sampling_settings = {}
+
+class UNETLoader_MuseTalk:
     @classmethod
     def INPUT_TYPES(s):
-        return {"required": {
-            },
-        }
+        return {"required": { 
+                             }}
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "load_unet"
 
-    RETURN_TYPES = ("MUSETALKMOMODEL",)
-    RETURN_NAMES = ("muse_talk_model",)
-    FUNCTION = "loadmodel"
     CATEGORY = "MuseTalk"
 
-    def loadmodel(self):
-        device = mm.get_torch_device()
-        dtype = mm.unet_dtype()
+    def load_unet(self):
+        
+        model_path = os.path.join(folder_paths.models_dir,'musetalk')
+        
+        if not os.path.exists(model_path):
+            from huggingface_hub import snapshot_download
+            snapshot_download(repo_id="TMElyralab/MuseTalk", local_dir=model_path, local_dir_use_symlinks=False)
 
-        if not hasattr(self, 'model') or self.model == None:
-            model_path = os.path.join(folder_paths.models_dir,'musetalk')
-            if not os.path.exists(model_path):
-                from huggingface_hub import snapshot_download
-                snapshot_download(repo_id="TMElyralab/MuseTalk", local_dir=model_path, local_dir_use_symlinks=False)
+        unet_weight_path = os.path.join(model_path, "musetalk","pytorch_model.bin") 
+        
+        sd = load_torch_file(unet_weight_path)
+     
+        model_config = MuseModelConfig()
+        diffusers_keys = unet_to_diffusers(model_config.unet_config)
+        
+        new_sd = {}
+        for k in diffusers_keys:
+            if k in sd:
+                new_sd[diffusers_keys[k]] = sd.pop(k)
 
-            unet_config_path = os.path.join(model_path, "musetalk","musetalk.json")
-            with open(unet_config_path, 'r') as f:
-                unet_config = json.load(f)
-            unet_weight_path = os.path.join(model_path, "musetalk","pytorch_model.bin")    
-            self.model = UNet2DConditionModel(**unet_config)
-            self.weights = torch.load(unet_weight_path)
-            self.model.load_state_dict(self.weights)
+        model = BaseModel(model_config)
+        model.diffusion_model.load_state_dict(new_sd, strict=False)
+        return (model,)
 
-            self.pe = PositionalEncoding(d_model=384)
-            self.model.to(dtype)
-            self.model.to(device)
-
-            muse_talk_model = {
-                'unet': self.model,
-                'pe': self.pe,
-            }
-        return (muse_talk_model,)
-    
-class muse_talk_process:
+class muse_talk_sampler:
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {
+            "model": ("MODEL",),
             "vae": ("VAE",),
-            "muse_talk_model": ("MUSETALKMOMODEL",),
             "whisper_features" : ("WHISPERFEAT",),
             "images": ("IMAGE",),
             "masked_images": ("IMAGE",),
@@ -91,16 +97,17 @@ class muse_talk_process:
     FUNCTION = "process"
     CATEGORY = "MuseTalk"
 
-    def process(self, vae, muse_talk_model, whisper_features, images, masked_images, batch_size, delay_frame):
+    def process(self, model, vae, whisper_features, images, masked_images, batch_size, delay_frame):
+
         device = mm.get_torch_device()
         offload_device = mm.unet_offload_device()
-        dtype = muse_talk_model['unet'].dtype
+        dtype = mm.unet_dtype()
         vae_scale_factor = 0.18215
         mm.unload_all_models()
         mm.soft_empty_cache()
         
         images = images.to(dtype).to(device)
-        masked_images = masked_images.to(dtype).to(device)
+        masked_images = masked_images.to(dtype).to(device)      
 
         autocast_condition = (dtype != torch.float32) and not mm.is_device_mps(device)
         with torch.autocast(mm.get_autocast_device(device), dtype=dtype) if autocast_condition else nullcontext():
@@ -119,18 +126,19 @@ class muse_talk_process:
             gen = self.datagen(whisper_features, input_latent_list_cycle, batch_size, delay_frame)
             
             total=int(np.ceil(float(video_num)/batch_size))
-
+            
             out_frame_list = []
             
             pbar = ProgressBar(total)
-            muse_talk_model['unet'].to(device)
+            model.diffusion_model.to(device)
             for i, (whisper_batch,latent_batch) in enumerate(tqdm(gen,total=total)):
         
                 tensor_list = [torch.FloatTensor(arr) for arr in whisper_batch]
                 audio_feature_batch = torch.stack(tensor_list).to(device) # torch, B, 5*N,384
-                audio_feature_batch = muse_talk_model['pe'](audio_feature_batch)
+                audio_feature_batch = PositionalEncoding(d_model=384)(audio_feature_batch)
+              
+                pred_latents = model.diffusion_model(latent_batch, timesteps, context=audio_feature_batch)
 
-                pred_latents = muse_talk_model['unet'](latent_batch, timesteps, encoder_hidden_states=audio_feature_batch).sample
                 pred_latents = (1 / vae_scale_factor) * pred_latents
                 decoded = vae.decode(pred_latents)
                 
@@ -139,7 +147,7 @@ class muse_talk_process:
                 pbar.update(1)
 
             out = torch.stack(out_frame_list, dim=0).float().cpu()
-        muse_talk_model['unet'].to(offload_device)
+        model.diffusion_model.to(offload_device)
         vae.first_stage_model.to(offload_device)
         return (out,)
     
@@ -209,8 +217,8 @@ class whisper_to_features:
             }
         }
 
-    RETURN_TYPES = ("WHISPERFEAT", )
-    RETURN_NAMES = ("whisper_chunks",)
+    RETURN_TYPES = ("WHISPERFEAT", "INT",)
+    RETURN_NAMES = ("whisper_chunks", "frame_count",)
     FUNCTION = "whispertranscribe"
     CATEGORY = "VoiceCraft"
 
@@ -259,8 +267,8 @@ class whisper_to_features:
             i += 1
             if start_idx>len(whisper_feature):
                 break
-
-        return (whisper_chunks,)
+        print(f"Whisper chunks: {len(whisper_chunks)}")
+        return (whisper_chunks, len(whisper_chunks),)
     
     def get_sliced_feature(self,feature_array, vid_idx, audio_feat_length= [2,2],fps = 25):
         """
@@ -290,14 +298,14 @@ class whisper_to_features:
         return selected_feature,selected_idx
             
 NODE_CLASS_MAPPINGS = {
-    "muse_talk_model_loader": load_muse_talk,
-    "muse_talk_process": muse_talk_process,
     "whisper_to_features": whisper_to_features,
-    "vhs_audio_to_audio_tensor": vhs_audio_to_audio_tensor
+    "vhs_audio_to_audio_tensor": vhs_audio_to_audio_tensor,
+    "muse_talk_sampler": muse_talk_sampler,
+    "UNETLoader_MuseTalk": UNETLoader_MuseTalk
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "muse_talk_model_loader": "MuseTalk Model Loader",
-    "muse_talk_process": "MuseTalk Process",
     "whisper_to_features": "Whisper To Features",
-    "vhs_audio_to_audio_tensor": "VHS Audio To Audio Tensor"
+    "vhs_audio_to_audio_tensor": "VHS Audio To Audio Tensor",
+    "muse_talk_sampler": "MuseTalk Sampler",
+    "UNETLoader_MuseTalk": "UNETLoader_MuseTalk"
 }
