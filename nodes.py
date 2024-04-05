@@ -234,7 +234,6 @@ class whisper_to_features:
         model = Whisper(dims)
         model.load_state_dict(whisper_sd["model_state_dict"])
         del whisper_sd
-        
         result = model.transcribe(audio_tensor.squeeze(0))
         
         embed_list = []
