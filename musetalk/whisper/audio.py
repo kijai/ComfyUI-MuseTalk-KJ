@@ -2,7 +2,7 @@ import os
 from functools import lru_cache
 from typing import Union
 
-import ffmpeg
+#import ffmpeg
 import numpy as np
 import torch
 import torch.nn.functional as F
