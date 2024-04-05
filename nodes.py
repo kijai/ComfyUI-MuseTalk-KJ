@@ -215,7 +215,8 @@ class whisper_to_features:
     CATEGORY = "VoiceCraft"
 
     def whispertranscribe(self, audio_tensor, fps):
-        from .musetalk.whisper.whisper import load_model
+        from .musetalk.whisper.model import Whisper, ModelDimensions
+        device = mm.get_torch_device()
         model_path = os.path.join(script_directory, "musetalk", "whisper","checkpoints","tiny.pt")
         
         if not os.path.exists(model_path):
@@ -228,8 +229,12 @@ class whisper_to_features:
                     file.write(response.content)
             else:
                 print(f"Failed to download {url} to {model_path}, status code: {response.status_code}")
-
-        model = load_model(model_path)
+        whisper_sd = torch.load(model_path, map_location=device)
+        dims = ModelDimensions(**whisper_sd["dims"])
+        model = Whisper(dims)
+        model.load_state_dict(whisper_sd["model_state_dict"])
+        del whisper_sd
+        
         result = model.transcribe(audio_tensor.squeeze(0))
         
         embed_list = []
