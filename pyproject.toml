@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-musetalk-kj"
-description = ""
+description = "Native (as much as possible) implementation of MuseTalk in ComfyUI."
 version = "1.0.0"
 license = "LICENSE"
 dependencies = ["requests"]
