@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-musetalk-kj"
+description = ""
+version = "1.0.0"
+license = "LICENSE"
+dependencies = ["requests"]
+
+[project.urls]
+Repository = "https://github.com/kijai/ComfyUI-MuseTalk-KJ"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-MuseTalk-KJ"
+Icon = ""
